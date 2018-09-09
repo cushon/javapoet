@@ -28,7 +28,6 @@ import java.util.List;
 import java.util.Map;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
-import javax.lang.model.element.TypeParameterElement;
 import javax.lang.model.type.ArrayType;
 import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.ErrorType;
@@ -240,11 +239,6 @@ public class TypeName {
 
   /** Returns a type name equivalent to {@code mirror}. */
   public static TypeName get(TypeMirror mirror) {
-    return get(mirror, new LinkedHashMap<>());
-  }
-
-  static TypeName get(TypeMirror mirror,
-      final Map<TypeParameterElement, TypeVariableName> typeVariables) {
     return mirror.accept(new SimpleTypeVisitor8<TypeName, Void>() {
       @Override public TypeName visitPrimitive(PrimitiveType t, Void p) {
         switch (t.getKind()) {
@@ -283,7 +277,7 @@ public class TypeName {
 
         List<TypeName> typeArgumentNames = new ArrayList<>();
         for (TypeMirror mirror : t.getTypeArguments()) {
-          typeArgumentNames.add(get(mirror, typeVariables));
+          typeArgumentNames.add(get(mirror));
         }
         return enclosing instanceof ParameterizedTypeName
             ? ((ParameterizedTypeName) enclosing).nestedClass(
@@ -296,15 +290,15 @@ public class TypeName {
       }
 
       @Override public ArrayTypeName visitArray(ArrayType t, Void p) {
-        return ArrayTypeName.get(t, typeVariables);
+        return ArrayTypeName.get(t);
       }
 
       @Override public TypeName visitTypeVariable(javax.lang.model.type.TypeVariable t, Void p) {
-        return TypeVariableName.get(t, typeVariables);
+        return TypeVariableName.get(t);
       }
 
       @Override public TypeName visitWildcard(javax.lang.model.type.WildcardType t, Void p) {
-        return WildcardTypeName.get(t, typeVariables);
+        return WildcardTypeName.get(t);
       }
 
       @Override public TypeName visitNoType(NoType t, Void p) {
@@ -320,10 +314,6 @@ public class TypeName {
 
   /** Returns a type name equivalent to {@code type}. */
   public static TypeName get(Type type) {
-    return get(type, new LinkedHashMap<>());
-  }
-
-  static TypeName get(Type type, Map<Type, TypeVariableName> map) {
     if (type instanceof Class<?>) {
       Class<?> classType = (Class<?>) type;
       if (type == void.class) return VOID;
@@ -335,20 +325,20 @@ public class TypeName {
       if (type == char.class) return CHAR;
       if (type == float.class) return FLOAT;
       if (type == double.class) return DOUBLE;
-      if (classType.isArray()) return ArrayTypeName.of(get(classType.getComponentType(), map));
+      if (classType.isArray()) return ArrayTypeName.of(get(classType.getComponentType()));
       return ClassName.get(classType);
 
     } else if (type instanceof ParameterizedType) {
-      return ParameterizedTypeName.get((ParameterizedType) type, map);
+      return ParameterizedTypeName.get((ParameterizedType) type);
 
     } else if (type instanceof WildcardType) {
-      return WildcardTypeName.get((WildcardType) type, map);
+      return WildcardTypeName.get((WildcardType) type);
 
     } else if (type instanceof TypeVariable<?>) {
-      return TypeVariableName.get((TypeVariable<?>) type, map);
+      return TypeVariableName.get((TypeVariable<?>) type);
 
     } else if (type instanceof GenericArrayType) {
-      return ArrayTypeName.get((GenericArrayType) type, map);
+      return ArrayTypeName.get((GenericArrayType) type);
 
     } else {
       throw new IllegalArgumentException("unexpected type: " + type);
@@ -357,13 +347,9 @@ public class TypeName {
 
   /** Converts an array of types to a list of type names. */
   static List<TypeName> list(Type[] types) {
-    return list(types, new LinkedHashMap<>());
-  }
-
-  static List<TypeName> list(Type[] types, Map<Type, TypeVariableName> map) {
     List<TypeName> result = new ArrayList<>(types.length);
     for (Type type : types) {
-      result.add(get(type, map));
+      result.add(get(type));
     }
     return result;
   }

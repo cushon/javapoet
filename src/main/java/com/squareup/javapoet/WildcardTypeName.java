@@ -20,10 +20,7 @@ import java.lang.reflect.Type;
 import java.lang.reflect.WildcardType;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
-import javax.lang.model.element.TypeParameterElement;
 import javax.lang.model.type.TypeMirror;
 
 import static com.squareup.javapoet.Util.checkArgument;
@@ -98,32 +95,22 @@ public final class WildcardTypeName extends TypeName {
   }
 
   public static TypeName get(javax.lang.model.type.WildcardType mirror) {
-    return get(mirror, new LinkedHashMap<>());
-  }
-
-  static TypeName get(
-      javax.lang.model.type.WildcardType mirror,
-      Map<TypeParameterElement, TypeVariableName> typeVariables) {
     TypeMirror extendsBound = mirror.getExtendsBound();
     if (extendsBound == null) {
       TypeMirror superBound = mirror.getSuperBound();
       if (superBound == null) {
         return subtypeOf(Object.class);
       } else {
-        return supertypeOf(TypeName.get(superBound, typeVariables));
+        return supertypeOf(TypeName.get(superBound));
       }
     } else {
-      return subtypeOf(TypeName.get(extendsBound, typeVariables));
+      return subtypeOf(TypeName.get(extendsBound));
     }
   }
 
   public static TypeName get(WildcardType wildcardName) {
-    return get(wildcardName, new LinkedHashMap<>());
-  }
-
-  static TypeName get(WildcardType wildcardName, Map<Type, TypeVariableName> map) {
     return new WildcardTypeName(
-        list(wildcardName.getUpperBounds(), map),
-        list(wildcardName.getLowerBounds(), map));
+        list(wildcardName.getUpperBounds()),
+        list(wildcardName.getLowerBounds()));
   }
 }

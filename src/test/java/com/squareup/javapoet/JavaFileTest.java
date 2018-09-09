@@ -537,7 +537,7 @@ public final class JavaFileTest {
     String source = JavaFile.builder("com.squareup.tacos",
         TypeSpec.classBuilder("Taco")
             .addTypeVariable(
-                TypeVariableName.get("T", ClassName.get("com.taco.bell", "Taco")))
+                TypeVariableSpec.get("T", ClassName.get("com.taco.bell", "Taco")))
             .build())
         .build()
         .toString();

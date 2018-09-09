@@ -185,28 +185,22 @@ final class CodeWriter {
    * Emit type variables with their bounds. This should only be used when declaring type variables;
    * everywhere else bounds are omitted.
    */
-  public void emitTypeVariables(List<TypeVariableName> typeVariables) throws IOException {
+  public void emitTypeVariables(List<TypeVariableSpec> typeVariables) throws IOException {
     if (typeVariables.isEmpty()) return;
 
     typeVariables.forEach(typeVariable -> currentTypeVariables.add(typeVariable.name));
 
     emit("<");
     boolean firstTypeVariable = true;
-    for (TypeVariableName typeVariable : typeVariables) {
+    for (TypeVariableSpec typeVariable : typeVariables) {
       if (!firstTypeVariable) emit(", ");
-      emitAnnotations(typeVariable.annotations, true);
-      emit("$L", typeVariable.name);
-      boolean firstBound = true;
-      for (TypeName bound : typeVariable.bounds) {
-        emit(firstBound ? " extends $T" : " & $T", bound);
-        firstBound = false;
-      }
+      typeVariable.emit(this);
       firstTypeVariable = false;
     }
     emit(">");
   }
 
-  public void popTypeVariables(List<TypeVariableName> typeVariables) throws IOException {
+  public void popTypeVariables(List<TypeVariableSpec> typeVariables) throws IOException {
     typeVariables.forEach(typeVariable -> currentTypeVariables.remove(typeVariable.name));
   }
 

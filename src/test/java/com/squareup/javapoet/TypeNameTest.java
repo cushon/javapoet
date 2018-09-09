@@ -17,7 +17,6 @@ package com.squareup.javapoet;
 
 import java.io.Serializable;
 import java.lang.reflect.Method;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -145,8 +144,8 @@ public class TypeNameTest {
   @Test public void equalsAndHashCodeTypeVariableName() {
     assertEqualsHashCodeAndToString(TypeVariableName.get(Object.class),
         TypeVariableName.get(Object.class));
-    TypeVariableName typeVar1 = TypeVariableName.get("T", Comparator.class, Serializable.class);
-    TypeVariableName typeVar2 = TypeVariableName.get("T", Comparator.class, Serializable.class);
+    TypeVariableName typeVar1 = TypeVariableName.get("T");
+    TypeVariableName typeVar2 = TypeVariableName.get("T");
     assertEqualsHashCodeAndToString(typeVar1, typeVar2);
   }
 

@@ -44,7 +44,7 @@ public final class TypeSpec {
   public final CodeBlock javadoc;
   public final List<AnnotationSpec> annotations;
   public final Set<Modifier> modifiers;
-  public final List<TypeVariableName> typeVariables;
+  public final List<TypeVariableSpec> typeVariables;
   public final TypeName superclass;
   public final List<TypeName> superinterfaces;
   public final Map<String, TypeSpec> enumConstants;
@@ -398,7 +398,7 @@ public final class TypeSpec {
     private final CodeBlock.Builder javadoc = CodeBlock.builder();
     private final List<AnnotationSpec> annotations = new ArrayList<>();
     private final List<Modifier> modifiers = new ArrayList<>();
-    private final List<TypeVariableName> typeVariables = new ArrayList<>();
+    private final List<TypeVariableSpec> typeVariables = new ArrayList<>();
     private TypeName superclass = ClassName.OBJECT;
     private final List<TypeName> superinterfaces = new ArrayList<>();
     private final Map<String, TypeSpec> enumConstants = new LinkedHashMap<>();
@@ -458,16 +458,16 @@ public final class TypeSpec {
       return this;
     }
 
-    public Builder addTypeVariables(Iterable<TypeVariableName> typeVariables) {
+    public Builder addTypeVariables(Iterable<TypeVariableSpec> typeVariables) {
       checkState(anonymousTypeArguments == null, "forbidden on anonymous types.");
       checkArgument(typeVariables != null, "typeVariables == null");
-      for (TypeVariableName typeVariable : typeVariables) {
+      for (TypeVariableSpec typeVariable : typeVariables) {
         this.typeVariables.add(typeVariable);
       }
       return this;
     }
 
-    public Builder addTypeVariable(TypeVariableName typeVariable) {
+    public Builder addTypeVariable(TypeVariableSpec typeVariable) {
       checkState(anonymousTypeArguments == null, "forbidden on anonymous types.");
       typeVariables.add(typeVariable);
       return this;

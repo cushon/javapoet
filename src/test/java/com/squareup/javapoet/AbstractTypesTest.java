@@ -24,7 +24,6 @@ import static org.junit.Assert.*;
 import com.google.testing.compile.Compilation;
 import com.google.testing.compile.JavaFileObjects;
 import java.io.Serializable;
-import java.lang.annotation.Annotation;
 import java.nio.charset.Charset;
 import java.util.Collections;
 import java.util.List;
@@ -32,8 +31,6 @@ import java.util.Map;
 import java.util.Set;
 import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.RoundEnvironment;
-import javax.lang.model.element.AnnotationMirror;
-import javax.lang.model.element.Element;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.TypeParameterElement;
 import javax.lang.model.element.VariableElement;
@@ -41,7 +38,6 @@ import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.ErrorType;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
-import javax.lang.model.type.TypeVisitor;
 import javax.lang.model.type.WildcardType;
 import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
@@ -123,24 +119,42 @@ public abstract class AbstractTypesTest {
     List<? extends TypeParameterElement> typeVariables =
         getElement(Parameterized.class).getTypeParameters();
 
+    assertThat(TypeName.get(typeVariables.get(0).asType()))
+        .isEqualTo(TypeVariableName.get("Simple"));
+    assertThat(TypeName.get(typeVariables.get(1).asType()))
+        .isEqualTo(TypeVariableName.get("ExtendsClass"));
+    assertThat(TypeName.get(typeVariables.get(2).asType()))
+        .isEqualTo(TypeVariableName.get("ExtendsInterface"));
+    assertThat(TypeName.get(typeVariables.get(3).asType()))
+        .isEqualTo(TypeVariableName.get("ExtendsTypeVariable"));
+    assertThat(TypeName.get(typeVariables.get(4).asType()))
+        .isEqualTo(TypeVariableName.get("Intersection"));
+    assertThat(TypeName.get(typeVariables.get(5).asType()))
+        .isEqualTo(TypeVariableName.get("IntersectionOfInterfaces"));
+  }
+
+  @Test public void getTypeVariableSpec() {
+    List<? extends TypeParameterElement> typeVariables =
+        getElement(Parameterized.class).getTypeParameters();
+
     // Members of converted types use ClassName and not Class<?>.
     ClassName number = ClassName.get(Number.class);
     ClassName runnable = ClassName.get(Runnable.class);
     ClassName serializable = ClassName.get(Serializable.class);
 
-    assertThat(TypeName.get(typeVariables.get(0).asType()))
-        .isEqualTo(TypeVariableName.get("Simple"));
-    assertThat(TypeName.get(typeVariables.get(1).asType()))
-        .isEqualTo(TypeVariableName.get("ExtendsClass", number));
-    assertThat(TypeName.get(typeVariables.get(2).asType()))
-        .isEqualTo(TypeVariableName.get("ExtendsInterface", runnable));
-    assertThat(TypeName.get(typeVariables.get(3).asType()))
-        .isEqualTo(TypeVariableName.get("ExtendsTypeVariable", TypeVariableName.get("Simple")));
-    assertThat(TypeName.get(typeVariables.get(4).asType()))
-        .isEqualTo(TypeVariableName.get("Intersection", number, runnable));
-    assertThat(TypeName.get(typeVariables.get(5).asType()))
-        .isEqualTo(TypeVariableName.get("IntersectionOfInterfaces", runnable, serializable));
-    assertThat(((TypeVariableName) TypeName.get(typeVariables.get(4).asType())).bounds)
+    assertThat(TypeVariableSpec.get(typeVariables.get(0)))
+        .isEqualTo(TypeVariableSpec.get("Simple"));
+    assertThat(TypeVariableSpec.get(typeVariables.get(1)))
+        .isEqualTo(TypeVariableSpec.get("ExtendsClass", number));
+    assertThat(TypeVariableSpec.get(typeVariables.get(2)))
+        .isEqualTo(TypeVariableSpec.get("ExtendsInterface", runnable));
+    assertThat(TypeVariableSpec.get(typeVariables.get(3)))
+        .isEqualTo(TypeVariableSpec.get("ExtendsTypeVariable", TypeVariableName.get("Simple")));
+    assertThat(TypeVariableSpec.get(typeVariables.get(4)))
+        .isEqualTo(TypeVariableSpec.get("Intersection", number, runnable));
+    assertThat(TypeVariableSpec.get(typeVariables.get(5)))
+        .isEqualTo(TypeVariableSpec.get("IntersectionOfInterfaces", runnable, serializable));
+    assertThat((TypeVariableSpec.get(typeVariables.get(4))).bounds)
         .containsExactly(number, runnable);
   }
 
@@ -155,15 +169,7 @@ public abstract class AbstractTypesTest {
 
     TypeVariableName typeVariableName = (TypeVariableName) typeName.typeArguments.get(0);
 
-    try {
-      typeVariableName.bounds.set(0, null);
-      fail("Expected UnsupportedOperationException");
-    } catch (UnsupportedOperationException expected) {
-    }
-
     assertThat(typeVariableName.toString()).isEqualTo("T");
-    assertThat(typeVariableName.bounds.toString())
-        .isEqualTo("[java.util.Map<java.util.List<T>, java.util.Set<T[]>>]");
   }
 
   @Test public void getPrimitiveTypeMirror() {
@@ -253,8 +259,8 @@ public abstract class AbstractTypesTest {
   }
 
   @Test public void typeVariable() throws Exception {
-    TypeVariableName type = TypeVariableName.get("T", CharSequence.class);
-    assertThat(type.toString()).isEqualTo("T"); // (Bounds are only emitted in declaration.)
+    TypeVariableName type = TypeVariableName.get("T");
+    assertThat(type.toString()).isEqualTo("T");
   }
 
   @Test public void box() throws Exception {

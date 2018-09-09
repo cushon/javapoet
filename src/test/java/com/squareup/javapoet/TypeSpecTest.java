@@ -17,6 +17,7 @@ package com.squareup.javapoet;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.testing.compile.CompilationRule;
+import com.sun.tools.javac.code.Type.TypeVar;
 import java.io.IOException;
 import java.io.Serializable;
 import java.math.BigDecimal;
@@ -544,11 +545,11 @@ public final class TypeSpecTest {
 
   @Test public void typeVariables() throws Exception {
     TypeVariableName t = TypeVariableName.get("T");
-    TypeVariableName p = TypeVariableName.get("P", Number.class);
+    TypeVariableName p = TypeVariableName.get("P");
     ClassName location = ClassName.get(tacosPackage, "Location");
     TypeSpec typeSpec = TypeSpec.classBuilder("Location")
-        .addTypeVariable(t)
-        .addTypeVariable(p)
+        .addTypeVariable(TypeVariableSpec.get("T"))
+        .addTypeVariable(TypeVariableSpec.get("P", Number.class))
         .addSuperinterface(ParameterizedTypeName.get(ClassName.get(Comparable.class), p))
         .addField(t, "label")
         .addField(p, "x")
@@ -562,8 +563,8 @@ public final class TypeSpecTest {
             .build())
         .addMethod(MethodSpec.methodBuilder("of")
             .addModifiers(Modifier.PUBLIC, Modifier.STATIC)
-            .addTypeVariable(t)
-            .addTypeVariable(p)
+            .addTypeVariable(TypeVariableSpec.get("T"))
+            .addTypeVariable(TypeVariableSpec.get("P", Number.class))
             .returns(ParameterizedTypeName.get(location, t, p))
             .addParameter(t, "label")
             .addParameter(p, "x")
@@ -599,13 +600,13 @@ public final class TypeSpecTest {
 
   @Test public void typeVariableWithBounds() {
     AnnotationSpec a = AnnotationSpec.builder(ClassName.get("com.squareup.tacos", "A")).build();
-    TypeVariableName p = TypeVariableName.get("P", Number.class);
-    TypeVariableName q = (TypeVariableName) TypeVariableName.get("Q", Number.class).annotated(a);
+    TypeVariableSpec p = TypeVariableSpec.get("P", Number.class);
+    TypeVariableSpec q = TypeVariableSpec.get("Q", Number.class).annotated(a);
     TypeSpec typeSpec = TypeSpec.classBuilder("Location")
         .addTypeVariable(p.withBounds(Comparable.class))
         .addTypeVariable(q.withBounds(Comparable.class))
-        .addField(p, "x")
-        .addField(q, "y")
+        .addField(TypeVariableName.get("P"), "x")
+        .addField(TypeVariableName.get("Q").annotated(a), "y")
         .build();
     assertThat(toString(typeSpec)).isEqualTo(""
         + "package com.squareup.tacos;\n"
@@ -991,13 +992,13 @@ public final class TypeSpecTest {
     ClassName methodInPackage = ClassName.get("com.squareup.tacos", "MethodInPackage");
     ClassName methodOtherType = ClassName.get("com.other", "MethodOtherType");
     TypeSpec gen = TypeSpec.classBuilder("Gen")
-        .addTypeVariable(TypeVariableName.get("InPackage"))
-        .addTypeVariable(TypeVariableName.get("OtherType"))
+        .addTypeVariable(TypeVariableSpec.get("InPackage"))
+        .addTypeVariable(TypeVariableSpec.get("OtherType"))
         .addField(FieldSpec.builder(inPackage, "inPackage").build())
         .addField(FieldSpec.builder(otherType, "otherType").build())
         .addMethod(MethodSpec.methodBuilder("withTypeVariables")
-            .addTypeVariable(TypeVariableName.get("MethodInPackage"))
-            .addTypeVariable(TypeVariableName.get("MethodOtherType"))
+            .addTypeVariable(TypeVariableSpec.get("MethodInPackage"))
+            .addTypeVariable(TypeVariableSpec.get("MethodOtherType"))
             .addStatement("$T inPackage = null", methodInPackage)
             .addStatement("$T otherType = null", methodOtherType)
             .build())
@@ -1006,14 +1007,14 @@ public final class TypeSpecTest {
             .addStatement("$T otherType = null", methodOtherType)
             .build())
         .addMethod(MethodSpec.methodBuilder("againWithTypeVariables")
-            .addTypeVariable(TypeVariableName.get("MethodInPackage"))
-            .addTypeVariable(TypeVariableName.get("MethodOtherType"))
+            .addTypeVariable(TypeVariableSpec.get("MethodInPackage"))
+            .addTypeVariable(TypeVariableSpec.get("MethodOtherType"))
             .addStatement("$T inPackage = null", methodInPackage)
             .addStatement("$T otherType = null", methodOtherType)
             .build())
         // https://github.com/square/javapoet/pull/657#discussion_r205514292
         .addMethod(MethodSpec.methodBuilder("masksEnclosingTypeVariable")
-            .addTypeVariable(TypeVariableName.get("InPackage"))
+            .addTypeVariable(TypeVariableSpec.get("InPackage"))
             .build())
         .addMethod(MethodSpec.methodBuilder("hasSimpleNameThatWasPreviouslyMasked")
             .addStatement("$T inPackage = null", inPackage)
@@ -1066,11 +1067,11 @@ public final class TypeSpecTest {
   }
 
   @Test public void intersectionType() {
-    TypeVariableName typeVariable = TypeVariableName.get("T", Comparator.class, Serializable.class);
+    TypeVariableSpec typeVariable = TypeVariableSpec.get("T", Comparator.class, Serializable.class);
     TypeSpec taco = TypeSpec.classBuilder("Taco")
         .addMethod(MethodSpec.methodBuilder("getComparator")
             .addTypeVariable(typeVariable)
-            .returns(typeVariable)
+            .returns(TypeVariableName.get("T"))
             .addCode("return null;\n")
             .build())
         .build();
@@ -1928,8 +1929,8 @@ public final class TypeSpecTest {
   @Test public void multipleTypeVariableAddition() {
     TypeSpec location = TypeSpec.classBuilder("Location")
         .addTypeVariables(Arrays.asList(
-            TypeVariableName.get("T"),
-            TypeVariableName.get("P", Number.class)))
+            TypeVariableSpec.get("T"),
+            TypeVariableSpec.get("P", Number.class)))
         .build();
     assertThat(toString(location)).isEqualTo(""
         + "package com.squareup.tacos;\n"

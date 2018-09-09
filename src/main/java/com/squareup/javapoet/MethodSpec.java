@@ -47,7 +47,7 @@ public final class MethodSpec {
   public final CodeBlock javadoc;
   public final List<AnnotationSpec> annotations;
   public final Set<Modifier> modifiers;
-  public final List<TypeVariableName> typeVariables;
+  public final List<TypeVariableSpec> typeVariables;
   public final TypeName returnType;
   public final List<ParameterSpec> parameters;
   public final boolean varargs;
@@ -214,7 +214,7 @@ public final class MethodSpec {
 
     for (TypeParameterElement typeParameterElement : method.getTypeParameters()) {
       TypeVariable var = (TypeVariable) typeParameterElement.asType();
-      methodBuilder.addTypeVariable(TypeVariableName.get(var));
+      methodBuilder.addTypeVariable(TypeVariableSpec.get(var));
     }
 
     methodBuilder.returns(TypeName.get(method.getReturnType()));
@@ -283,7 +283,7 @@ public final class MethodSpec {
     private final CodeBlock.Builder javadoc = CodeBlock.builder();
     private final List<AnnotationSpec> annotations = new ArrayList<>();
     private final List<Modifier> modifiers = new ArrayList<>();
-    private List<TypeVariableName> typeVariables = new ArrayList<>();
+    private List<TypeVariableSpec> typeVariables = new ArrayList<>();
     private TypeName returnType;
     private final List<ParameterSpec> parameters = new ArrayList<>();
     private final Set<TypeName> exceptions = new LinkedHashSet<>();
@@ -345,15 +345,15 @@ public final class MethodSpec {
       return this;
     }
 
-    public Builder addTypeVariables(Iterable<TypeVariableName> typeVariables) {
+    public Builder addTypeVariables(Iterable<TypeVariableSpec> typeVariables) {
       checkArgument(typeVariables != null, "typeVariables == null");
-      for (TypeVariableName typeVariable : typeVariables) {
+      for (TypeVariableSpec typeVariable : typeVariables) {
         this.typeVariables.add(typeVariable);
       }
       return this;
     }
 
-    public Builder addTypeVariable(TypeVariableName typeVariable) {
+    public Builder addTypeVariable(TypeVariableSpec typeVariable) {
       typeVariables.add(typeVariable);
       return this;
     }
